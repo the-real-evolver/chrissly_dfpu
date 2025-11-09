@@ -1,0 +1,12 @@
+# ignore private files
+_private/
+
+# ignore temporary files, build results etc.
+**/*.o
+
+# ignore Visual Studio temporary files, build results etc.
+.vs
+examples/example_windows/.vs
+examples/example_windows/x64
+examples/example_windows/example_windows
+

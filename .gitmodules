@@ -1,0 +1,3 @@
+[submodule "chrissly_decimal"]
+	path = chrissly_decimal
+	url = https://github.com/the-real-evolver/chrissly_decimal.git
