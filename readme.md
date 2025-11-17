@@ -8,7 +8,13 @@ For fun an education.
 2. Select Board: "Teensy 4.0"
 3. Tools -> USB Type -> "Raw HID"
 4. Upload
-### Client code
+### Client-API
+Note that you have to fetch the required submodules before compiling the sample. Run these two commands from the main project:
+```console
+git submodule init
+git submodule update
+```
+Simple example:
 ```c
 #include <stdio.h>
 #define CHRISSLY_DFPU_WINDOWS

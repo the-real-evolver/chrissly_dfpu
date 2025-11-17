@@ -2,7 +2,7 @@
 /**
     teensy_firmware.ino
 
-    Uses the USB-HID protocol to recieve/send data from/to client.
+    Uses the USB-HID protocol to receive/send data from/to client.
 
     You must select Raw HID from the "Tools > USB Type" menu.
 
@@ -156,43 +156,42 @@ setup()
 void
 loop()
 {
-    int n = RawHID.recv(buffer, 0); // 0 timeout = do not wait
-    if (n > 0)
+    int n = RawHID.recv(buffer, 0U); // 0 timeout = do not wait
+    if (n <= 0) return;
+
+    decimal_t a[4U] = {0}, b[4U] = {0}, r[4U] = {0};
+    a[0U].integer_places = buffer[1U]; a[0U].decimal_places = buffer[2U]; memcpy(&a[0U].significand, &buffer[3U], sizeof(int32_t));
+    b[0U].integer_places = buffer[7U]; b[0U].decimal_places = buffer[8U]; memcpy(&b[0U].significand, &buffer[9U], sizeof(int32_t));
+    a[1U].integer_places = buffer[13U]; a[1U].decimal_places = buffer[14U]; memcpy(&a[1U].significand, &buffer[15U], sizeof(int32_t));
+    b[1U].integer_places = buffer[19U]; b[1U].decimal_places = buffer[20U]; memcpy(&b[1U].significand, &buffer[21U], sizeof(int32_t));
+    a[2U].integer_places = buffer[25U]; a[2U].decimal_places = buffer[26U]; memcpy(&a[2U].significand, &buffer[27U], sizeof(int32_t));
+    b[2U].integer_places = buffer[31U]; b[2U].decimal_places = buffer[32U]; memcpy(&b[2U].significand, &buffer[33U], sizeof(int32_t));
+    a[3U].integer_places = buffer[37U]; a[3U].decimal_places = buffer[38U]; memcpy(&a[3U].significand, &buffer[39U], sizeof(int32_t));
+    b[3U].integer_places = buffer[43U]; b[3U].decimal_places = buffer[44U]; memcpy(&b[3U].significand, &buffer[45U], sizeof(int32_t));
+
+    unsigned int i;
+    switch (buffer[0U])
     {
-        decimal_t a[4U] = {0}, b[4U] = {0}, r[4U] = {0};
-        a[0].integer_places = buffer[1]; a[0].decimal_places = buffer[2]; memcpy(&a[0].significand, &buffer[3], sizeof(int32_t));
-        b[0].integer_places = buffer[7]; b[0].decimal_places = buffer[8]; memcpy(&b[0].significand, &buffer[9], sizeof(int32_t));
-        a[1].integer_places = buffer[13]; a[1].decimal_places = buffer[14]; memcpy(&a[1].significand, &buffer[15], sizeof(int32_t));
-        b[1].integer_places = buffer[19]; b[1].decimal_places = buffer[20]; memcpy(&b[1].significand, &buffer[21], sizeof(int32_t));
-        a[2].integer_places = buffer[25]; a[2].decimal_places = buffer[26]; memcpy(&a[2].significand, &buffer[27], sizeof(int32_t));
-        b[2].integer_places = buffer[31]; b[2].decimal_places = buffer[32]; memcpy(&b[2].significand, &buffer[33], sizeof(int32_t));
-        a[3].integer_places = buffer[37]; a[3].decimal_places = buffer[38]; memcpy(&a[3].significand, &buffer[39], sizeof(int32_t));
-        b[3].integer_places = buffer[43]; b[3].decimal_places = buffer[44]; memcpy(&b[3].significand, &buffer[45], sizeof(int32_t));
-
-        unsigned int i;
-        switch (buffer[0])
-        {
-            case op_add:
-                for (i = 0U; i < 4U; ++i) r[i] = decimal_add(a[i], b[i]);
-                break;
-            case op_subtract:
-                for (i = 0U; i < 4U; ++i) r[i] = decimal_subtract(a[i], b[i]);
-                break;
-            case op_multiply:
-                for (i = 0U; i < 4U; ++i) r[i] = decimal_multiply(a[i], b[i]);
-                break;
-            case op_divide:
-                for (i = 0U; i < 4U; ++i) r[i] = decimal_divide(a[i], b[i]);
-                break;
-            default:
-                break;
-        }
-
-        buffer[0] = r[0].integer_places; buffer[1] = r[0].decimal_places; memcpy(&buffer[2], &r[0].significand, sizeof(int32_t));
-        buffer[6] = r[1].integer_places; buffer[7] = r[1].decimal_places; memcpy(&buffer[8], &r[1].significand, sizeof(int32_t));
-        buffer[12] = r[2].integer_places; buffer[13] = r[2].decimal_places; memcpy(&buffer[14], &r[2].significand, sizeof(int32_t));
-        buffer[18] = r[3].integer_places; buffer[19] = r[3].decimal_places; memcpy(&buffer[20], &r[3].significand, sizeof(int32_t));
-
-        n = RawHID.send(buffer, 100);
+        case op_add:
+            for (i = 0U; i < 4U; ++i) r[i] = decimal_add(a[i], b[i]);
+            break;
+        case op_subtract:
+            for (i = 0U; i < 4U; ++i) r[i] = decimal_subtract(a[i], b[i]);
+            break;
+        case op_multiply:
+            for (i = 0U; i < 4U; ++i) r[i] = decimal_multiply(a[i], b[i]);
+            break;
+        case op_divide:
+            for (i = 0U; i < 4U; ++i) r[i] = decimal_divide(a[i], b[i]);
+            break;
+        default:
+            break;
     }
+
+    buffer[0U] = r[0U].integer_places; buffer[1U] = r[0U].decimal_places; memcpy(&buffer[2U], &r[0U].significand, sizeof(int32_t));
+    buffer[6U] = r[1U].integer_places; buffer[7U] = r[1U].decimal_places; memcpy(&buffer[8U], &r[1U].significand, sizeof(int32_t));
+    buffer[12U] = r[2U].integer_places; buffer[13U] = r[2U].decimal_places; memcpy(&buffer[14U], &r[2U].significand, sizeof(int32_t));
+    buffer[18U] = r[3U].integer_places; buffer[19U] = r[3U].decimal_places; memcpy(&buffer[20U], &r[3U].significand, sizeof(int32_t));
+
+    RawHID.send(buffer, 100U);
 }

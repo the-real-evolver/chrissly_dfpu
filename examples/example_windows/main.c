@@ -37,16 +37,16 @@ main(void)
             decimal_t vec_r[4U] = {0};
 
             dfpu_add_packed(vec_a, vec_b, vec_r);
-            print_number(vec_r[0]); print_number(vec_r[1]); print_number(vec_r[2]); print_number(vec_r[3]);
+            print_number(vec_r[0U]); print_number(vec_r[1U]); print_number(vec_r[2U]); print_number(vec_r[3U]);
 
             dfpu_subtract_packed(vec_a, vec_b, vec_r);
-            print_number(vec_r[0]); print_number(vec_r[1]); print_number(vec_r[2]); print_number(vec_r[3]);
+            print_number(vec_r[0U]); print_number(vec_r[1U]); print_number(vec_r[2U]); print_number(vec_r[3U]);
 
             dfpu_multiply_packed(vec_a, vec_b, vec_r);
-            print_number(vec_r[0]); print_number(vec_r[1]); print_number(vec_r[2]); print_number(vec_r[3]);
+            print_number(vec_r[0U]); print_number(vec_r[1U]); print_number(vec_r[2U]); print_number(vec_r[3U]);
 
             dfpu_divide_packed(vec_a, vec_b, vec_r);
-            print_number(vec_r[0]); print_number(vec_r[1]); print_number(vec_r[2]); print_number(vec_r[3]);
+            print_number(vec_r[0U]); print_number(vec_r[1U]); print_number(vec_r[2U]); print_number(vec_r[3U]);
         }
     }
 

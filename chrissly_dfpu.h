@@ -3,7 +3,7 @@
     chrissly_dfpu.h
 
     Client-API for a Decimal Floating Point Unit (DFPU) prototype based on the
-    teensy 4.0 board.
+    teensy 4.0 board (see: https://www.pjrc.com/store/teensy40.html).
 
     Add this line:
         #define CHRISSLY_DFPU_IMPLEMENTATION
@@ -225,9 +225,9 @@ device_send(void* buf, unsigned int len, unsigned int timeout)
     ResetEvent(&send_event);
     memset(&ov, 0, sizeof(ov));
     ov.hEvent = send_event;
-    tmpbuf[0] = 0;
+    tmpbuf[0U] = 0U;
     memcpy(tmpbuf + 1U, buf, len);
-    if (!WriteFile(device, tmpbuf, len + 1, NULL, &ov))
+    if (!WriteFile(device, tmpbuf, len + 1U, NULL, &ov))
     {
         if (GetLastError() != ERROR_IO_PENDING) goto return_error;
         r = WaitForSingleObject(send_event, timeout);
@@ -238,8 +238,8 @@ device_send(void* buf, unsigned int len, unsigned int timeout)
 
     LeaveCriticalSection(&send_mutex);
 
-    if (n <= 0) return -1;
-    return n - 1;
+    if (n <= 0U) return -1;
+    return n - 1U;
 
 return_timeout:
     CancelIo(device);
@@ -258,6 +258,7 @@ return_error:
 static void
 dfpu_op_packed(enum operation op, decimal_t a[4U], decimal_t b[4U], decimal_t r[])
 {
+    int bytes_sent = 0, bytes_received = 0;
     if (device_connected)
     {
 #ifdef CHRISSLY_DFPU_WINDOWS
@@ -271,34 +272,36 @@ dfpu_op_packed(enum operation op, decimal_t a[4U], decimal_t b[4U], decimal_t r[
         buffer[31U] = b[2U].integer_places; buffer[32U] = b[2U].decimal_places; memcpy(&buffer[33U], &b[2U].significand, sizeof(int32_t));
         buffer[37U] = a[3U].integer_places; buffer[38U] = a[3U].decimal_places; memcpy(&buffer[39U], &a[3U].significand, sizeof(int32_t));
         buffer[43U] = b[3U].integer_places; buffer[44U] = b[3U].decimal_places; memcpy(&buffer[45U], &b[3U].significand, sizeof(int32_t));
-        device_send(buffer, BUFFER_SIZE, 100U);
+        bytes_sent = device_send(buffer, BUFFER_SIZE, 100U);
 
-        device_receive(buffer, BUFFER_SIZE, 100U);
+        bytes_received = device_receive(buffer, BUFFER_SIZE, 100U);
         r[0U].integer_places = buffer[0U]; r[0U].decimal_places = buffer[1U]; memcpy(&r[0U].significand, &buffer[2U], sizeof(int32_t));
         r[1U].integer_places = buffer[6U]; r[1U].decimal_places = buffer[7U]; memcpy(&r[1U].significand, &buffer[8U], sizeof(int32_t));
         r[2U].integer_places = buffer[12U]; r[2U].decimal_places = buffer[13U]; memcpy(&r[2U].significand, &buffer[14U], sizeof(int32_t));
         r[3U].integer_places = buffer[18U]; r[3U].decimal_places = buffer[19U]; memcpy(&r[3U].significand, &buffer[20U], sizeof(int32_t));
 #endif
     }
-    else
+
+    if (!device_connected || bytes_sent != BUFFER_SIZE || bytes_received != BUFFER_SIZE)
     {
+        // fallback to software implementation
         unsigned int i;
         switch (op)
         {
-        case op_add:
-            for (i = 0U; i < 4U; ++i) r[i] = decimal_add(a[i], b[i]);
-            break;
-        case op_subtract:
-            for (i = 0U; i < 4U; ++i) r[i] = decimal_subtract(a[i], b[i]);
-            break;
-        case op_multiply:
-            for (i = 0U; i < 4U; ++i) r[i] = decimal_multiply(a[i], b[i]);
-            break;
-        case op_divide:
-            for (i = 0U; i < 4U; ++i) r[i] = decimal_divide(a[i], b[i]);
-            break;
-        default:
-            break;
+            case op_add:
+                for (i = 0U; i < 4U; ++i) r[i] = decimal_add(a[i], b[i]);
+                break;
+            case op_subtract:
+                for (i = 0U; i < 4U; ++i) r[i] = decimal_subtract(a[i], b[i]);
+                break;
+            case op_multiply:
+                for (i = 0U; i < 4U; ++i) r[i] = decimal_multiply(a[i], b[i]);
+                break;
+            case op_divide:
+                for (i = 0U; i < 4U; ++i) r[i] = decimal_divide(a[i], b[i]);
+                break;
+            default:
+                break;
         }
     }
 }
@@ -307,7 +310,7 @@ dfpu_op_packed(enum operation op, decimal_t a[4U], decimal_t b[4U], decimal_t r[
 /**
 */
 void
-dfpu_init()
+dfpu_init(void)
 {
 #ifdef CHRISSLY_DFPU_WINDOWS
     device_open();
@@ -318,7 +321,7 @@ dfpu_init()
 /**
 */
 void
-dfpu_term()
+dfpu_term(void)
 {
 #ifdef CHRISSLY_DFPU_WINDOWS
     device_close();
