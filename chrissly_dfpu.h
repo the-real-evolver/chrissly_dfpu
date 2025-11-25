@@ -72,6 +72,7 @@ static HANDLE receive_event = NULL;
 static CRITICAL_SECTION receive_mutex = {0};
 static HANDLE send_event = NULL;
 static CRITICAL_SECTION send_mutex = {0};
+static bool device_opened = false;
 
 static void device_close(void);
 
@@ -143,6 +144,8 @@ device_open(void)
         send_event = CreateEvent(NULL, TRUE, TRUE, NULL);
         InitializeCriticalSection(&send_mutex);
 
+        device_opened = true;
+
         return;
     }
 }
@@ -151,18 +154,19 @@ device_open(void)
 static void
 device_close(void)
 {
-    if (device != INVALID_HANDLE_VALUE)
+    if (device_opened)
     {
         CloseHandle(device);
-        device = INVALID_HANDLE_VALUE;
+
+        CloseHandle(send_event);
+        CloseHandle(receive_event);
+
+        DeleteCriticalSection(&send_mutex);
+        DeleteCriticalSection(&receive_mutex);
+
+        device_opened = false;
     }
     device_connected = false;
-
-    DeleteCriticalSection(&send_mutex);
-    CloseHandle(send_event);
-
-    DeleteCriticalSection(&receive_mutex);
-    CloseHandle(receive_event);
 }
 
 //------------------------------------------------------------------------------
